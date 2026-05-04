@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="SteamCord.Application/SteamCord.Application.csproj" />
   <Project Path="SteamCord.Bot/SteamCord.Bot.csproj" />
+  <Project Path="SteamCord.Infrastructure/SteamCord.Infrastructure.csproj" />
 </Solution>

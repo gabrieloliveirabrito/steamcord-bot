@@ -19,4 +19,9 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SteamCord.Application\SteamCord.Application.csproj" />
+    <ProjectReference Include="..\SteamCord.Infrastructure\SteamCord.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,6 @@
+@SteamCord.Bot_HostAddress = http://localhost:5263
+
+GET {{SteamCord.Bot_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

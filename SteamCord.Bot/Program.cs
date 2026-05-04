@@ -7,6 +7,7 @@ using NetCord.Hosting.Services.Commands;
 using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
 using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 using SteamCord.Application.Configuration;
 using SteamCord.Application.Interfaces;
 using SteamCord.Infrastructure;
@@ -23,7 +24,7 @@ builder.Host.UseSerilog((context, options) =>
     options.MinimumLevel.Override("Microsoft", LogEventLevel.Warning);
 #endif
     options.Enrich.FromLogContext();
-    options.WriteTo.Console();
+    options.WriteTo.Console(theme: AnsiConsoleTheme.Code, applyThemeToRedirectedOutput: true);
 });
 
 var envPath = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath!, "../.env"));

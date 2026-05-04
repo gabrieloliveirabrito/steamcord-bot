@@ -8,6 +8,7 @@ using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
+using SteamCord.Application.Common;
 using SteamCord.Application.Configuration;
 using SteamCord.Application.Interfaces;
 using SteamCord.Infrastructure;
@@ -41,6 +42,11 @@ builder.Services.AddCors(options =>
     {
         policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
     });
+});
+
+builder.Services.AddMediatR(options =>
+{
+   options.RegisterServicesFromAssembly(typeof(Result).Assembly);
 });
 
 builder.Services.AddDiscordGateway((options, services) =>

@@ -1,5 +1,3 @@
-using System.Text;
-using DotEnv.Core;
 using NetCord;
 using NetCord.Gateway;
 using NetCord.Hosting.Gateway;
@@ -7,11 +5,12 @@ using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
 using NetCord.Hosting.Services.Commands;
 using NetCord.Hosting.Services.ComponentInteractions;
-using NetCord.Rest;
 using NetCord.Services.ComponentInteractions;
 using Serilog;
-using Serilog.Events;
-using SteamCord.Bot;
+using SteamCord.Application.Configuration;
+using SteamCord.Application.Interfaces;
+using SteamCord.Infrastructure;
+using SteamCord.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +27,10 @@ builder.Host.UseSerilog((context, options) =>
 });
 
 var envPath = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath!, "../.env"));
-builder.Services.AddDotEnv<AppSettings>(envPath);
+builder.Services.AddDotEnv<DiscordSettings>(envPath);
+builder.Services.AddDotEnv<SteamSettings>(envPath);
+
+builder.Services.AddHttpClient();
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
@@ -42,10 +44,10 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddDiscordGateway((options, services) =>
 {
-    var configuration = services.GetRequiredService<AppSettings>();
+    var settings = services.GetRequiredService<DiscordSettings>();
 
-    options.Token = configuration.DiscordToken;
-    options.PublicKey = configuration.DiscordPublicKey;
+    options.Token = settings.DiscordToken;
+    options.PublicKey = settings.DiscordPublicKey;
     options.AutoStartStop = true;
     options.Intents = GatewayIntents.Guilds |
     GatewayIntents.GuildMessages |
@@ -79,6 +81,8 @@ builder.Services
     .AddComponentInteractions<ModalInteraction, ModalInteractionContext>();
 
 builder.Services.AddGatewayHandlers(typeof(Program).Assembly);
+
+builder.Services.AddInfrastructure();
 
 var app = builder.Build();
 

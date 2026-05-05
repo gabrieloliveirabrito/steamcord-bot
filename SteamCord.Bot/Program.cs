@@ -8,6 +8,7 @@ using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
+using SteamCord.Application;
 using SteamCord.Application.Common;
 using SteamCord.Application.Configuration;
 using SteamCord.Application.Interfaces;
@@ -89,7 +90,7 @@ builder.Services
 
 builder.Services.AddGatewayHandlers(typeof(Program).Assembly);
 
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure().AddApplication();
 
 var app = builder.Build();
 

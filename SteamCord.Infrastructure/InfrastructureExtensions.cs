@@ -6,9 +6,11 @@ namespace SteamCord.Infrastructure;
 
 public static class InfrastructureExtensions
 {
-    public static void AddInfrastructure(this IServiceCollection collection)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection collection)
     {
         collection.AddSingleton<IDiscordService, DiscordService>();
         collection.AddSingleton<ISteamService, SteamService>();
+
+        return collection;
     }
 }

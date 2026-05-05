@@ -3,11 +3,11 @@ using NetCord;
 using NetCord.Services.ApplicationCommands;
 using SteamCord.Application.Features.Steam.Commands;
 
-namespace SteamCord.Bot.Features.Steam;
+namespace SteamCord.Bot.Features.Steam.Commands;
 
-[SlashCommand("steam", "The steam commands")]
-public class SteamCommands(IMediator mediator) : ApplicationCommandModule<ApplicationCommandContext>
+public partial class BaseCommand
 {
+
     [SubSlashCommand("set-channel", "Set the channel that appear logs")]
     public async Task<string> SetChannel(
         [SlashCommandParameter(Name ="channel", Description = "The channel that receives the logs")] Channel channel

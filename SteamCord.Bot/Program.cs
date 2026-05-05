@@ -11,9 +11,7 @@ using Serilog.Sinks.SystemConsole.Themes;
 using SteamCord.Application;
 using SteamCord.Application.Common;
 using SteamCord.Application.Configuration;
-using SteamCord.Application.Interfaces;
 using SteamCord.Infrastructure;
-using SteamCord.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,10 +26,6 @@ builder.Host.UseSerilog((context, options) =>
     options.Enrich.FromLogContext();
     options.WriteTo.Console(theme: AnsiConsoleTheme.Code, applyThemeToRedirectedOutput: true);
 });
-
-var envPath = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath!, "../.env"));
-builder.Services.AddDotEnv<DiscordSettings>(envPath);
-builder.Services.AddDotEnv<SteamSettings>(envPath);
 
 builder.Services.AddHttpClient();
 
@@ -90,7 +84,7 @@ builder.Services
 
 builder.Services.AddGatewayHandlers(typeof(Program).Assembly);
 
-builder.Services.AddInfrastructure().AddApplication();
+builder.Services.AddInfrastructure().AddApplication(builder.Environment.ContentRootPath!);
 
 var app = builder.Build();
 

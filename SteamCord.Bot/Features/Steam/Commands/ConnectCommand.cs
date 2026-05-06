@@ -19,7 +19,7 @@ public partial class BaseCommand
         var userId = Context.User.Id;
         var guildId = Context.Guild!.Id;
 
-        await Context.Interaction.SendResponseAsync(InteractionCallback.DeferredMessage(MessageFlags.Loading));
+        await Context.Interaction.SendResponseAsync(InteractionCallback.DeferredMessage(MessageFlags.Loading | MessageFlags.Ephemeral));
 
         var request = new CreateAuthTokenCommand(userId, guildId);
         var response = await mediator.Send(request);
@@ -32,8 +32,7 @@ public partial class BaseCommand
 
         await Context.Interaction.ModifyResponseAsync(x =>
         {
-            x.Flags = MessageFlags.Ephemeral;
-            x.Content = "Click on button bellow to link your account";
+            x.Content = "Token generated!";
             x.Components = [
                 new ActionRowProperties([
                     new ButtonProperties($"steamlink:{response.Token}", "Click here to link your account", ButtonStyle.Primary)

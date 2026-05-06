@@ -1,10 +1,13 @@
+using AspNet.Security.OpenId.Steam;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
 using SteamCord.Application.Configuration;
 using SteamCord.Application.Interfaces;
+using SteamCord.Application.Interfaces.Repositories;
 using SteamCord.Infrastructure.Persistence;
+using SteamCord.Infrastructure.Persistence.Repositories;
 using SteamCord.Infrastructure.Services;
 
 namespace SteamCord.Infrastructure;
@@ -13,17 +16,33 @@ public static class InfrastructureExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection collection)
     {
-        collection.AddDbContext<AppDbContext>((services, options) =>
-        {
-            var settings = services.GetRequiredService<AppSettings>();
-            
-            options.UseNpgsql(settings.AppDbConnectString);
+        using var services = collection.BuildServiceProvider();
+        var appSettings = services.GetRequiredService<AppSettings>();
+        var steamSettings = services.GetRequiredService<SteamSettings>();
+
+        collection.AddDbContext<AppDbContext>(options =>
+        {            
+            options.UseNpgsql(appSettings.AppDbConnectString);
         });
 
         collection.AddSingleton<IDiscordService, DiscordService>();
         collection.AddHttpClient<ISteamService, SteamService>()
         .AddPolicyHandler(GetRetry())
         .AddPolicyHandler(GetTimeout());
+
+        collection.AddAuthentication(options =>
+        {
+            options.DefaultScheme = "Cookies";
+            options.DefaultChallengeScheme = SteamAuthenticationDefaults.AuthenticationScheme;
+        })
+        .AddCookie("Cookies")
+        .AddSteam(options =>
+        {
+            options.ApplicationKey = steamSettings.ApiKey;
+            options.CallbackPath = steamSettings.AuthCallback;
+        });
+
+        collection.AddScoped<IUserTokenRepository, UserTokenRepository>();
 
         return collection;
     }

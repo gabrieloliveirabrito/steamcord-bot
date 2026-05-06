@@ -1,4 +1,4 @@
-namespace SteamCord.Infrastructure.Persistence.Entities;
+namespace SteamCord.Application.Entities;
 
 public class UserGuild
 {

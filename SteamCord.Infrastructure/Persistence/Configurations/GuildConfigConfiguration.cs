@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SteamCord.Infrastructure.Persistence.Entities;
+using SteamCord.Application.Entities;
 
 namespace SteamCord.Infrastructure.Persistence.Configurations;
 

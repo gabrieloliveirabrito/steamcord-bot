@@ -1,4 +1,4 @@
-namespace SteamCord.Infrastructure.Persistence.Entities;
+namespace SteamCord.Application.Entities;
 
 public class UserToken
 {
@@ -7,5 +7,5 @@ public class UserToken
     public ulong GuildId { get; set; }
     public string Token { get; set; } = Guid.NewGuid().ToString();
     public bool Used { get; set; }
-    public DateTime ExpiresAt { get; set; }
+    public DateTimeOffset ExpiresAt { get; set; }
 }

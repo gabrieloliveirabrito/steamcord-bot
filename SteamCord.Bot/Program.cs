@@ -84,11 +84,15 @@ builder.Services
 
 builder.Services.AddGatewayHandlers(typeof(Program).Assembly);
 
-builder.Services.AddInfrastructure().AddApplication(builder.Environment.ContentRootPath!);
+builder.Services.AddApplication(builder.Environment.ContentRootPath!).AddInfrastructure();
 
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseCors();
 app.MapControllers();
 

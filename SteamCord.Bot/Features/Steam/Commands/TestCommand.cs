@@ -14,6 +14,7 @@ public partial class BaseCommand
     )
     {
         var message = new InteractionMessageProperties();
+        message.WithFlags(MessageFlags.Ephemeral);
 
         message.AddEmbeds(new EmbedProperties
         {

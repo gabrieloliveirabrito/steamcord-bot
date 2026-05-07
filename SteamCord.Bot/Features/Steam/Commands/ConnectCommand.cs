@@ -12,33 +12,46 @@ public partial class BaseCommand
     {
         if (Context.Guild is null)
         {
-            await Context.Interaction.SendResponseAsync(InteractionCallback.Message("You can only send this command on guild!"));
+            await Context.Interaction.ModifyResponseAsync(x => x.Content = "You can only send this command on guild!");
             return;
         }
 
         var userId = Context.User.Id;
         var guildId = Context.Guild!.Id;
 
-        await Context.Interaction.SendResponseAsync(InteractionCallback.DeferredMessage(MessageFlags.Loading | MessageFlags.Ephemeral));
-
-        var request = new CreateAuthTokenCommand(userId, guildId);
-        var response = await mediator.Send(request);
-
-        if (!response.Success)
+        var token = await CreateAuthToken(userId, guildId);
+        if (token is null)
         {
-            await Context.Interaction.ModifyResponseAsync(x => x.Content = response.Error);
             return;
         }
+
+        var url = string.Format(steamSettings.AuthUrl, token);
 
         await Context.Interaction.ModifyResponseAsync(x =>
         {
             x.Content = "Token generated!";
             x.Components = [
                 new ActionRowProperties([
-                    new ButtonProperties($"steamlink:{response.Token}", "Click here to link your account", ButtonStyle.Primary)
+                    new LinkButtonProperties(url, "Click here to link your account", EmojiProperties.Standard("🔗"))
                 ])
             ];
         });
         return;
+    }
+
+    async Task<string?> CreateAuthToken(ulong userId, ulong guildId)
+    {
+        var request = new CreateAuthTokenCommand(userId, guildId);
+        var response = await mediator.Send(request);
+
+        if (!response.Success)
+        {
+            await Context.Interaction.ModifyResponseAsync(x => x.Content = response.Error);
+            return null;
+        }
+        else
+        {
+            return response.Token;
+        }
     }
 }

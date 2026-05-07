@@ -30,7 +30,6 @@ builder.Host.UseSerilog((context, options) =>
 builder.Services.AddHttpClient();
 
 builder.Services.AddOpenApi();
-builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

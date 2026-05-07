@@ -11,6 +11,11 @@ public class UserTokenRepository(AppDbContext appDbContext) : IUserTokenReposito
         await appDbContext.UserTokens.AddAsync(userToken, ct);
     }
 
+    public async Task<UserToken?> FindByTokenAsync(string token, CancellationToken ct = default)
+    {
+        return await appDbContext.UserTokens.FirstOrDefaultAsync(x => x.Token == token, ct);
+    }
+
     public async Task<UserToken?> GetTokenAsync(ulong discordUserId, ulong guildId, CancellationToken ct = default)
     {
         return await appDbContext.UserTokens.FirstOrDefaultAsync(x => x.DiscordUserId == discordUserId && x.GuildId == guildId, ct);

@@ -10,8 +10,5 @@ public class UserGuildConfiguration : IEntityTypeConfiguration<UserGuild>
     {
         builder.HasKey(x => x.Id);
         builder.HasIndex(x => new { x.UserId, x.GuildId }).IsUnique();
-
-        builder.HasOne(x => x.User).WithOne();
-        builder.HasOne(x => x.GuildConfig).WithMany();
     }
 }

@@ -1,4 +1,6 @@
 using AspNet.Security.OpenId.Steam;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
@@ -33,21 +35,26 @@ public static class InfrastructureExtensions
 
         collection.AddAuthentication(options =>
         {
-            options.DefaultScheme = "Cookies";
+            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = SteamAuthenticationDefaults.AuthenticationScheme;
         })
-        .AddCookie("Cookies")
+        .AddCookie(options =>
+        {
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        })
         .AddSteam(options =>
         {
             options.ApplicationKey = steamSettings.ApiKey;
-            options.CallbackPath = steamSettings.AuthCallback;
+            //options.CallbackPath = steamSettings.AuthCallback;
         });
 
-        collection.AddScoped<IUserTokenRepository, UserTokenRepository>();
         collection.AddScoped<IGuildConfigRepository, GuildConfigRepository>();
         collection.AddScoped<IUserTokenRepository, UserTokenRepository>();
+        collection.AddScoped<IUserGuildRepository, UserGuildRepository>();
+        collection.AddScoped<IUserRepository, UserRepository>();
 
-        collection.AddControllersWithViews();
+        collection.AddControllersWithViews().AddApplicationPart(typeof(InfrastructureExtensions).Assembly);
 
         return collection;
     }

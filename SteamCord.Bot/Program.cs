@@ -83,6 +83,7 @@ builder.Services.AddApplication(builder.Environment.ContentRootPath!).AddInfrast
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
+app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 app.UseRouting();

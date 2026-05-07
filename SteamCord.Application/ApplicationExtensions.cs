@@ -12,6 +12,11 @@ public static class ApplicationExtensions
         collection.AddDotEnv<SteamSettings>(envPath);
         collection.AddDotEnv<AppSettings>(envPath);
 
+        collection.AddMediatR(options =>
+        {
+            options.RegisterServicesFromAssembly(typeof(ApplicationExtensions).Assembly);
+        });
+
         return collection;
     }
 }

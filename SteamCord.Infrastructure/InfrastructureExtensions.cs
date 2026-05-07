@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
 using SteamCord.Application.Configuration;
+using SteamCord.Application.Entities;
 using SteamCord.Application.Interfaces;
 using SteamCord.Application.Interfaces.Repositories;
 using SteamCord.Infrastructure.Persistence;
@@ -43,6 +44,10 @@ public static class InfrastructureExtensions
         });
 
         collection.AddScoped<IUserTokenRepository, UserTokenRepository>();
+        collection.AddScoped<IGuildConfigRepository, GuildConfigRepository>();
+        collection.AddScoped<IUserTokenRepository, UserTokenRepository>();
+
+        collection.AddControllersWithViews();
 
         return collection;
     }

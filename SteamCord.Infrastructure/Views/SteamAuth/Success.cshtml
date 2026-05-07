@@ -1,0 +1,40 @@
+@model SteamCord.Infrastructure.Auth.Models.AuthViewModel
+
+@{
+    ViewData["Title"] = "Steam Connected";
+}
+
+<div class="auth-card p-5 text-center" style="width: 100%; max-width: 480px;">
+
+    <div class="status-icon mb-4">
+        🎮
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.SteamAvatarUrl))
+    {
+        <img
+            class="steam-avatar mb-4"
+            src="@Model.SteamAvatarUrl"
+            alt="Steam Avatar" />
+    }
+
+    <h1 class="fw-bold mb-2">
+        Steam Connected
+    </h1>
+
+    @if (!string.IsNullOrWhiteSpace(Model.SteamName))
+    {
+        <h5 class="muted-text mb-4">
+            @Model.SteamName
+        </h5>
+    }
+
+    <p class="fs-5 mb-2">
+        Your Steam account has been successfully linked.
+    </p>
+
+    <p class="muted-text mb-0">
+        You can now return to Discord.
+    </p>
+
+</div>

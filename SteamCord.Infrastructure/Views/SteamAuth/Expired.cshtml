@@ -1,0 +1,25 @@
+@model SteamCord.Infrastructure.Auth.Models.AuthViewModel
+
+@{
+    ViewData["Title"] = "Token Expired";
+}
+
+<div class="auth-card p-5 text-center" style="width: 100%; max-width: 480px;">
+
+    <div class="status-icon mb-4">
+        ⏰
+    </div>
+
+    <h1 class="fw-bold mb-4">
+        Token Expired
+    </h1>
+
+    <p class="fs-5">
+        Your authentication token expired.
+    </p>
+
+    <p class="muted-text mb-0">
+        Please generate a new link from Discord.
+    </p>
+
+</div>

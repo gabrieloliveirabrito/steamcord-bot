@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using SteamCord.Application.Configuration;
 using SteamCord.Application.Entities;
 using SteamCord.Application.Interfaces.Repositories;
+using SteamCord.Infrastructure.Auth.Models;
 using SteamCord.Infrastructure.Persistence;
 
 namespace SteamCord.Infrastructure.Auth.Controllers;
@@ -20,7 +21,7 @@ public class SteamAuthController(
     IUserTokenRepository userTokenRepository,
     IUserGuildRepository userGuildRepository,
     SteamSettings steamSettings
-    ) : ControllerBase
+    ) : Controller
 {
     [HttpGet("login")]
     public IActionResult Login([FromQuery] string token)
@@ -85,5 +86,38 @@ public class SteamAuthController(
         await userGuildRepository.SaveChangesAsync(ct);
 
         return Ok("Steam account linked successfully");
+    }
+
+    [HttpGet("success")]
+    public IActionResult Success()
+    {
+        var model = new AuthViewModel
+        {
+            Success = true,
+            SteamName = "Gabriel",
+            SteamAvatarUrl = "https://avatars.cloudflare.steamstatic.com/5e7947e664e7a507e8a52dc563b8647519a05230_full.jpg"
+        };
+
+        return View("Success", model);
+    }
+
+    [HttpGet("error")]
+    public IActionResult Error()
+    {
+        return View("Error", new AuthViewModel
+        {
+            Success = false,
+            Message = "An unexpected authentication error occurred."
+        });
+    }
+
+    [HttpGet("expired")]
+    public IActionResult Expired()
+    {
+        return View("Expired", new AuthViewModel
+        {
+            Success = false,
+            Message = "Your login token expired."
+        });
     }
 }

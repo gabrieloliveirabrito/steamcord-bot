@@ -1,0 +1,21 @@
+@model SteamCord.Infrastructure.Auth.Models.AuthViewModel
+
+@{
+    ViewData["Title"] = "Authentication Failed";
+}
+
+<div class="auth-card p-5 text-center" style="width: 100%; max-width: 480px;">
+
+    <div class="status-icon mb-4">
+        ❌
+    </div>
+
+    <h1 class="fw-bold mb-4">
+        Authentication Failed
+    </h1>
+
+    <p class="fs-5">
+        @Model.Message
+    </p>
+
+</div>

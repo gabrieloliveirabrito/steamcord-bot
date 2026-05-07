@@ -24,7 +24,7 @@ public static class InfrastructureExtensions
         var steamSettings = services.GetRequiredService<SteamSettings>();
 
         collection.AddDbContext<AppDbContext>(options =>
-        {            
+        {
             options.UseNpgsql(appSettings.AppDbConnectString);
         });
 
@@ -54,7 +54,16 @@ public static class InfrastructureExtensions
         collection.AddScoped<IUserGuildRepository, UserGuildRepository>();
         collection.AddScoped<IUserRepository, UserRepository>();
 
-        collection.AddControllersWithViews().AddApplicationPart(typeof(InfrastructureExtensions).Assembly);
+        collection.AddControllersWithViews()
+        .AddApplicationPart(typeof(InfrastructureExtensions).Assembly)
+        .AddRazorOptions(options =>
+        {
+            options.ViewLocationFormats.Add(
+                "/Auth/Views/{0}.cshtml");
+
+            options.ViewLocationFormats.Add(
+                "/Auth/Views/Shared/{0}.cshtml");
+        });
 
         return collection;
     }

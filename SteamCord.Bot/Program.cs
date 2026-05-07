@@ -38,11 +38,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddMediatR(options =>
-{
-   options.RegisterServicesFromAssembly(typeof(Result).Assembly);
-});
-
 builder.Services.AddDiscordGateway((options, services) =>
 {
     var settings = services.GetRequiredService<DiscordSettings>();
@@ -89,11 +84,13 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 
+app.UseHttpsRedirection();
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 
 app.UseCors();
-app.MapControllers();
 
 if (app.Environment.IsDevelopment())
 {
@@ -101,6 +98,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.AddModules(typeof(Program).Assembly);
-app.UseHttpsRedirection();
 
 app.Run();

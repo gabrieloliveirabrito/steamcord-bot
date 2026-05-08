@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Polly;
 using Polly.Extensions.Http;
 using SteamCord.Application.Configuration;
@@ -29,7 +30,13 @@ public static class InfrastructureExtensions
         });
 
         collection.AddSingleton<IDiscordService, DiscordService>();
-        collection.AddHttpClient<ISteamService, SteamService>()
+        collection.AddHttpClient<ISteamService, SteamService>((services, options) =>
+        {
+            var settings = services.GetRequiredService<SteamSettings>();
+
+            options.BaseAddress = new Uri("https://api.steamapis.com/v2/steam/");
+            options.DefaultRequestHeaders.Add("x-api-key", settings.SteamApisApiKey);
+        })
         .AddPolicyHandler(GetRetry())
         .AddPolicyHandler(GetTimeout());
 
@@ -56,6 +63,11 @@ public static class InfrastructureExtensions
 
         collection.AddControllersWithViews()
         .AddApplicationPart(typeof(InfrastructureExtensions).Assembly)
+        .AddNewtonsoftJson(options =>
+        {
+            options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            options.SerializerSettings.Formatting = Formatting.Indented;
+        })
         .AddRazorOptions(options =>
         {
             options.ViewLocationFormats.Add(
@@ -74,5 +86,5 @@ public static class InfrastructureExtensions
             .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(2));
 
     private static IAsyncPolicy<HttpResponseMessage> GetTimeout()
-        => Policy.TimeoutAsync<HttpResponseMessage>(5);
+        => Policy.TimeoutAsync<HttpResponseMessage>(15);
 }

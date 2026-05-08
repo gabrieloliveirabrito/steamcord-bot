@@ -1,9 +1,13 @@
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SteamCord.Application.Configuration;
 using SteamCord.Application.Interfaces;
+using SteamCord.Application.SteamApis.Models;
+using SteamCord.Application.SteamApis.Models.Users;
 
 namespace SteamCord.Infrastructure.Services;
 
-public class SteamService(HttpClient http, AppSettings appSettings) : ISteamService
+public class SteamService(ILogger<SteamService> logger, HttpClient http, AppSettings appSettings) : ISteamService
 {
     public Task<string?> GetGameBanner(int appId)
     {
@@ -14,4 +18,35 @@ public class SteamService(HttpClient http, AppSettings appSettings) : ISteamServ
     {
         return Task.FromResult<string?>($"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_hero.jpg");
     }
+
+    private async Task<T?> MakeRequest<T>(string url, Action<HttpRequestMessage> builder = null, CancellationToken ct = default)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        builder?.Invoke(request);
+
+        var response = await http.SendAsync(request, ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            logger.LogError("Failed to send the request to {url}", url);
+            return default;
+        }
+
+        var json = await response.Content.ReadAsStringAsync(ct);
+        var apiResponse = JsonConvert.DeserializeObject<BaseResponse<T>>(json);
+
+        return apiResponse?.Success is true ? apiResponse.Result : default;
+    }
+
+    public Task<SteamUser?> GetSteamUserAsync(string steamId, CancellationToken ct = default)
+        => MakeRequest<SteamUser>($"users/{steamId}", ct: ct);
+    // {
+    //     //var response = await http.GetFromJsonAsync<BaseResponse<SteamUserResponse>>($"users/{steamId}", ct);
+    //     var json = await http.GetStringAsync($"users/{steamId}", ct);
+    //     logger.LogInformation(json);
+
+    //     var response = JsonConvert.DeserializeObject<BaseResponse<SteamUser>>(json);
+    //     logger.LogInformation(response is null ? "NULL RES" : JsonConvert.SerializeObject(response));
+
+    //     return response?.Success is true ? response.Result : null;
+    // }
 }

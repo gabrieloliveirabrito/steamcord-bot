@@ -7,4 +7,5 @@ public interface ISteamService
 {
     Task<string?> GetGameBanner(int appId);
     Task<SteamUser?> GetSteamUserAsync(string steamId, CancellationToken ct = default);
+    Task<SteamAppDetails?> GetSteamAppDetailsAsync(string appId, CancellationToken ct = default);
 }

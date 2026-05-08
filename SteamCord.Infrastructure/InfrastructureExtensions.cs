@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Extensions.Http;
+using StackExchange.Redis;
 using SteamCord.Application.Configuration;
 using SteamCord.Application.Entities;
 using SteamCord.Application.Interfaces;
@@ -76,6 +77,18 @@ public static class InfrastructureExtensions
             options.ViewLocationFormats.Add(
                 "/Auth/Views/Shared/{0}.cshtml");
         });
+
+        collection.AddSingleton<IConnectionMultiplexer>(services =>
+        {
+            var appSettings = services.GetRequiredService<AppSettings>();
+
+            return ConnectionMultiplexer.Connect(appSettings.AppRedisConnectString
+#if DEBUG
+             , Console.Out
+#endif
+            );
+        });
+        collection.AddSingleton<IRedisService, RedisService>();
 
         return collection;
     }

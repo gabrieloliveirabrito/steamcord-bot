@@ -6,6 +6,6 @@ namespace SteamCord.Bot.Features.HelloWorld;
 public class HelloWorldCommand : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand("hello", "Send hello world")]
-    public string HelloWorld() => "Hello world!";
+    public Task HelloWorld() => Context.Interaction.ModifyResponseAsync(x => x.Content = "Hello World!");
 }
 #endif

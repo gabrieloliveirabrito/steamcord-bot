@@ -5,6 +5,5 @@ namespace SteamCord.Application.Interfaces;
 
 public interface ISteamService
 {
-    Task<SteamUser?> GetSteamUserAsync(string steamId, CancellationToken ct = default);
-    Task<SteamAppDetails?> GetSteamAppDetailsAsync(string appId, CancellationToken ct = default);
+    Task<SteamUser?> GetPlayerSummaries(string steamId, CancellationToken ct = default);
 }

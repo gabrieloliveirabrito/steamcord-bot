@@ -31,7 +31,7 @@ public static class InfrastructureExtensions
         });
 
         collection.AddSingleton<IDiscordService, DiscordService>();
-        collection.AddHttpClient<ISteamService, SteamService>((services, options) =>
+        collection.AddHttpClient<ISteamApisService, SteamApisService>((services, options) =>
         {
             var settings = services.GetRequiredService<SteamSettings>();
 
@@ -40,6 +40,13 @@ public static class InfrastructureExtensions
         })
         .AddPolicyHandler(GetRetry())
         .AddPolicyHandler(GetTimeout());
+
+        collection.AddHttpClient<ISteamService, SteamService>((services, options) =>
+        {
+            var settings = services.GetRequiredService<SteamSettings>();
+
+            options.BaseAddress = new Uri("https://api.steampowered.com/");
+        }).AddPolicyHandler(GetRetry()).AddPolicyHandler(GetTimeout());
 
         collection.AddAuthentication(options =>
         {

@@ -48,4 +48,10 @@ public sealed class SteamUser
 
     [JsonProperty("cityID")]
     public int? CityID { get; set; }
+    
+    [JsonProperty("gameID")]
+    public string? GameID { get; set; }
+
+    [JsonProperty("gameName")]
+    public string? GameName { get; set; }
 }

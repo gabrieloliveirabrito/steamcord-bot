@@ -36,7 +36,7 @@ public partial class BaseCommand
             //Description = $"O membro {Context.Interaction.User.GlobalName} {(start ? "abriu" : "fechou")} o jogo **PRAGMATA**"
         };
 
-        var appDetails = await steamService.GetSteamAppDetailsAsync(appId);
+        var appDetails = await steamApisService.GetSteamAppDetailsAsync(appId);
         if (appDetails is null)
         {
             embed.WithColor(new Color(0xFF0000))

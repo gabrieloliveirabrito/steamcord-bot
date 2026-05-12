@@ -1,5 +1,5 @@
 using NetCord.Rest;
-using SteamCord.Application.Interfaces;
+using SteamCord.Application.Interfaces.Services;
 
 namespace SteamCord.Infrastructure.Services;
 

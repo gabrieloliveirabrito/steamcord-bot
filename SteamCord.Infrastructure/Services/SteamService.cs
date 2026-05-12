@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using SteamCord.Application.Interfaces;
+using SteamCord.Application.Interfaces.Services;
 using SteamCord.Application.SteamApis.Models.Users;
 
 namespace SteamCord.Infrastructure.Services;

@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SteamCord.Application.Configuration;
-using SteamCord.Application.Interfaces;
+using SteamCord.Application.Interfaces.Services;
 using SteamCord.Application.SteamApis.Models;
 using SteamCord.Application.SteamApis.Models.Users;
 

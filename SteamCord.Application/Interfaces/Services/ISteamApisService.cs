@@ -1,7 +1,7 @@
 using SteamCord.Application.SteamApis.Models;
 using SteamCord.Application.SteamApis.Models.Users;
 
-namespace SteamCord.Application.Interfaces;
+namespace SteamCord.Application.Interfaces.Services;
 
 public interface ISteamApisService
 {

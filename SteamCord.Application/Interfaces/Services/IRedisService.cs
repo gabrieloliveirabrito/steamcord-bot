@@ -1,4 +1,4 @@
-namespace SteamCord.Application.Interfaces;
+namespace SteamCord.Application.Interfaces.Services;
 
 public interface IRedisService
 {

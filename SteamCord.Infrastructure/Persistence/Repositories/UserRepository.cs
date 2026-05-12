@@ -27,4 +27,20 @@ public class UserRepository(AppDbContext appDbContext) : IUserRepository
     }
 
     public Task SaveChangesAsync(CancellationToken ct = default) => appDbContext.SaveChangesAsync(ct);
+
+    public async Task UpdatePresenceAsync(long userId, string? gameId, string? gameName, DateTime lastSeenAt, CancellationToken ct = default)
+    {
+        var user = await appDbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
+        if (user is null)
+        {
+            return;
+        }
+
+        user.LastGameId = gameId;
+        user.LastGameName = gameName;
+        user.LastSeenAt = lastSeenAt;
+
+        appDbContext.Users.Update(user);
+        await SaveChangesAsync(ct);
+    }
 }

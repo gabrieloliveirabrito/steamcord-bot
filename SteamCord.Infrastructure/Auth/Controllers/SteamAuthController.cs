@@ -3,14 +3,11 @@ using AspNet.Security.OpenId.Steam;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using SteamCord.Application.Configuration;
 using SteamCord.Application.Entities;
-using SteamCord.Application.Interfaces;
+using SteamCord.Application.Interfaces.Services;
 using SteamCord.Application.Interfaces.Repositories;
 using SteamCord.Infrastructure.Auth.Models;
-using SteamCord.Infrastructure.Persistence;
 
 namespace SteamCord.Infrastructure.Auth.Controllers;
 
@@ -21,7 +18,7 @@ public class SteamAuthController(
     IUserRepository userRepository,
     IUserTokenRepository userTokenRepository,
     IUserGuildRepository userGuildRepository,
-    ISteamService steamService,
+    ISteamApisService steamApisService,
     SteamSettings steamSettings
     ) : Controller
 {
@@ -102,7 +99,7 @@ public class SteamAuthController(
 
     async Task<IActionResult> SendSuccessPage(string steamId, CancellationToken ct = default)
     {
-        var user = await steamService.GetSteamUserAsync(steamId, ct);
+        var user = await steamApisService.GetSteamUserAsync(steamId, ct);
 
         var model = new AuthViewModel
         {

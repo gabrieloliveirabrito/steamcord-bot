@@ -10,5 +10,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.HasKey(x => x.Id);
         builder.HasIndex(x => x.DiscordId).IsUnique();
+
+        builder.HasMany(x => x.UserGuilds).WithOne(x => x.User).HasForeignKey(x => x.UserId).HasPrincipalKey(x => x.Id);
     }
 }

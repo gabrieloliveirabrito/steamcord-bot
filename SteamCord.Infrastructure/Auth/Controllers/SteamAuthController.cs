@@ -18,6 +18,7 @@ public class SteamAuthController(
     IUserRepository userRepository,
     IUserTokenRepository userTokenRepository,
     IUserGuildRepository userGuildRepository,
+    IGuildConfigRepository guildConfigRepository,
     ISteamApisService steamApisService,
     SteamSettings steamSettings
     ) : Controller
@@ -91,7 +92,14 @@ public class SteamAuthController(
 
     async Task UpdateUserGuild(int userId, ulong guildId, CancellationToken ct = default)
     {
-        var userGuild = new UserGuild { GuildId = guildId, UserId = userId };
+        var guildConfig = await guildConfigRepository.GetGuildConfigAsync(guildId, ct);
+        if (guildConfig is null)
+        {
+            //TODO logger
+            return;
+        }
+
+        var userGuild = new UserGuild { GuildConfigId = guildConfig.Id, UserId = userId };
         await userGuildRepository.AddAsync(userGuild, ct);
 
         await userGuildRepository.SaveChangesAsync(ct);

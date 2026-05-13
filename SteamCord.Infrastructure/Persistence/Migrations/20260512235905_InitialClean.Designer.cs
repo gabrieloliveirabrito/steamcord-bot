@@ -12,8 +12,8 @@ using SteamCord.Infrastructure.Persistence;
 namespace SteamCord.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260506004655_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260512235905_InitialClean")]
+    partial class InitialClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,8 +58,14 @@ namespace SteamCord.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("DiscordId")
                         .HasColumnType("numeric(20,0)");
 
-                    b.Property<int?>("LastGameId")
-                        .HasColumnType("integer");
+                    b.Property<string>("LastGameId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastGameName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SteamId")
                         .IsRequired()
@@ -76,16 +82,10 @@ namespace SteamCord.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("SteamCord.Application.Entities.UserGuild", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("GuildConfigId")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -94,10 +94,7 @@ namespace SteamCord.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("GuildConfigId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.HasIndex("UserId", "GuildId")
+                    b.HasIndex("UserId", "GuildConfigId")
                         .IsUnique();
 
                     b.ToTable("UserGuilds");
@@ -138,20 +135,30 @@ namespace SteamCord.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("SteamCord.Application.Entities.UserGuild", b =>
                 {
                     b.HasOne("SteamCord.Application.Entities.GuildConfig", "GuildConfig")
-                        .WithMany()
+                        .WithMany("UserGuilds")
                         .HasForeignKey("GuildConfigId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SteamCord.Application.Entities.User", "User")
-                        .WithOne()
-                        .HasForeignKey("SteamCord.Application.Entities.UserGuild", "UserId")
+                        .WithMany("UserGuilds")
+                        .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("GuildConfig");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SteamCord.Application.Entities.GuildConfig", b =>
+                {
+                    b.Navigation("UserGuilds");
+                });
+
+            modelBuilder.Entity("SteamCord.Application.Entities.User", b =>
+                {
+                    b.Navigation("UserGuilds");
                 });
 #pragma warning restore 612, 618
         }

@@ -6,10 +6,20 @@ using SteamCord.Application.Interfaces.Repositories;
 
 namespace SteamCord.Application.Features.Steam.Handlers;
 
-public class CreateAuthTokenHandler(IUserTokenRepository userTokenRepository) : IRequestHandler<CreateAuthTokenCommand, CreateAuthTokenResponse>
+public class CreateAuthTokenHandler(IUserTokenRepository userTokenRepository, IGuildConfigRepository guildConfigRepository) 
+: IRequestHandler<CreateAuthTokenCommand, CreateAuthTokenResponse>
 {
     public async Task<CreateAuthTokenResponse> Handle(CreateAuthTokenCommand request, CancellationToken cancellationToken)
     {
+        var guildConfig = await guildConfigRepository.GetGuildConfigAsync(request.GuildId, cancellationToken);
+        if (guildConfig is null)
+        {
+            return new CreateAuthTokenResponse(false)
+            {
+                Error = "This guild hasn't configured!"
+            };
+        }
+
         var userToken = await userTokenRepository.GetTokenAsync(request.DiscordUserId, request.GuildId, cancellationToken);
 
         if (userToken is null)

@@ -8,4 +8,6 @@ public class User
     public string? LastGameId { get; set; }
     public string? LastGameName { get; set; }
     public DateTime? LastSeenAt { get; set; }
+
+    public ICollection<UserGuild> UserGuilds { get; set; } = [];
 }

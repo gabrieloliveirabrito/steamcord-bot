@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SteamCord.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,7 +34,9 @@ namespace SteamCord.Infrastructure.Persistence.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     DiscordId = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     SteamId = table.Column<string>(type: "text", nullable: false),
-                    LastGameId = table.Column<int>(type: "integer", nullable: true)
+                    LastGameId = table.Column<string>(type: "text", nullable: true),
+                    LastGameName = table.Column<string>(type: "text", nullable: true),
+                    LastSeenAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -62,10 +64,8 @@ namespace SteamCord.Infrastructure.Persistence.Migrations
                 name: "UserGuilds",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<int>(type: "integer", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    GuildId = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     GuildConfigId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -78,8 +78,8 @@ namespace SteamCord.Infrastructure.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserGuilds_Users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_UserGuilds_Users_Id",
+                        column: x => x.Id,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -97,15 +97,9 @@ namespace SteamCord.Infrastructure.Persistence.Migrations
                 column: "GuildConfigId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserGuilds_UserId",
+                name: "IX_UserGuilds_UserId_GuildConfigId",
                 table: "UserGuilds",
-                column: "UserId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserGuilds_UserId_GuildId",
-                table: "UserGuilds",
-                columns: new[] { "UserId", "GuildId" },
+                columns: new[] { "UserId", "GuildConfigId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

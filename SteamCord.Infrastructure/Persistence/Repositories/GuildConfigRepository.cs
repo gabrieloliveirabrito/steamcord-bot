@@ -20,5 +20,8 @@ public class GuildConfigRepository(AppDbContext appDbContext) : IGuildConfigRepo
         }
     }
 
+    public Task<GuildConfig?> GetGuildConfigAsync(ulong guildId, CancellationToken ct = default)
+    => appDbContext.GuildConfigs.FirstOrDefaultAsync(x => x.GuildId == guildId, ct);
+
     public Task SaveChangesAsync(CancellationToken ct = default) => appDbContext.SaveChangesAsync(ct);
 }

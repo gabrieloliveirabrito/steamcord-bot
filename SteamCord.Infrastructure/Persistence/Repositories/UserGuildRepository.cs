@@ -8,7 +8,7 @@ public class UserGuildRepository(AppDbContext appDbContext) : IUserGuildReposito
 {
     public async Task AddAsync(UserGuild userGuild, CancellationToken ct = default)
     {
-        var exists = await appDbContext.UserGuilds.FirstOrDefaultAsync(x => x.UserId == userGuild.UserId && x.GuildId == userGuild.GuildId, ct);
+        var exists = await appDbContext.UserGuilds.FirstOrDefaultAsync(x => x.UserId == userGuild.UserId && x.GuildConfigId == userGuild.GuildConfigId, ct);
 
         if (exists is null)
         {

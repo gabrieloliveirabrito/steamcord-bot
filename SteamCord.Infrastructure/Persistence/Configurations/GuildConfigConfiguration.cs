@@ -10,5 +10,7 @@ public class GuildConfigConfiguration : IEntityTypeConfiguration<GuildConfig>
     {
         builder.HasKey(x => x.Id);
         builder.HasIndex(x => x.GuildId).IsUnique();
+
+        builder.HasMany(x => x.UserGuilds).WithOne(x => x.GuildConfig).HasForeignKey(x => x.GuildConfigId).HasPrincipalKey(x => x.Id);
     }
 }

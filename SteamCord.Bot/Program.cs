@@ -7,10 +7,12 @@ using NetCord.Hosting.Services.Commands;
 using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
 using Serilog;
+using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using SteamCord.Application;
 using SteamCord.Application.Common;
 using SteamCord.Application.Configuration;
+using SteamCord.Bot.Workers;
 using SteamCord.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,8 +23,8 @@ builder.Host.UseSerilog((context, options) =>
     options.MinimumLevel.Verbose();
 #else
     options.MinimumLevel.Information();
-    options.MinimumLevel.Override("Microsoft", LogEventLevel.Warning);
 #endif
+    options.MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning);
     options.Enrich.FromLogContext();
     options.WriteTo.Console(theme: AnsiConsoleTheme.Code, applyThemeToRedirectedOutput: true);
 });
@@ -79,6 +81,7 @@ builder.Services
 builder.Services.AddGatewayHandlers(typeof(Program).Assembly);
 
 builder.Services.AddApplication(builder.Environment.ContentRootPath!).AddInfrastructure();
+builder.Services.AddHostedService<SteamPresenceWorker>();
 
 var app = builder.Build();
 

@@ -1,8 +1,8 @@
-using SteamCord.Application.SteamApis.Models.Users;
+using SteamCord.Application.Steam.Models.Players;
 
 namespace SteamCord.Application.Interfaces.Services;
 
 public interface ISteamService
 {
-    Task<SteamUser?> GetPlayerSummaries(string steamId, CancellationToken ct = default);
+    Task<IReadOnlyList<SteamPlayer>?> GetPlayerSummaries(IEnumerable<string> steamIds, CancellationToken ct = default);
 }

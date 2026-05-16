@@ -2,8 +2,12 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SteamCord.Application.Entities;
+using SteamCord.Application.Features.Discord.Events;
 using SteamCord.Application.Interfaces.Repositories;
+using SteamCord.Application.Interfaces.Services;
+using SteamCord.Application.Steam.Models.Players;
 using SteamCord.Infrastructure.Persistence;
+using SteamCord.Infrastructure.Persistence.Repositories;
 using SteamCord.Infrastructure.Services;
 
 namespace SteamCord.Bot.Workers;
@@ -11,10 +15,12 @@ namespace SteamCord.Bot.Workers;
 public class SteamPresenceWorker(
     ILogger<SteamPresenceWorker> logger,
     IMediator mediator,
+    ISteamService steamService,
+    ISteamApisService steamApisService,
     IServiceScopeFactory serviceScopeFactory
 ) : BackgroundService
 {
-    private readonly PeriodicTimer _timer = new(TimeSpan.FromSeconds(60));
+    private readonly PeriodicTimer _timer = new(TimeSpan.FromSeconds(20));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -55,10 +61,9 @@ public class SteamPresenceWorker(
         // }
 
         using var scope = serviceScopeFactory.CreateScope();
-        using var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var steam = scope.ServiceProvider.GetRequiredService<SteamService>();
+        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
 
-        var users = await appDbContext.Users.Include(x => x.UserGuilds).ThenInclude(x => x.GuildConfig).ToListAsync(cancellationToken);
+        var users = await userRepository.GetTrackedUsersAsync(cancellationToken);
         if (users is null)
         {
             logger.LogWarning("Failed to fetch the users on Presence Worker");
@@ -66,10 +71,10 @@ public class SteamPresenceWorker(
         }
         logger.LogInformation("Processing {0} users", users.Count);
 
-        await ProcessUsers(users, steam, cancellationToken);
+        await ProcessUsersAsync(users, userRepository, cancellationToken);
     }
 
-    async Task ProcessUsers(List<User> users, SteamService steamService, CancellationToken cancellationToken)
+    async Task ProcessUsersAsync(List<User> users, IUserRepository userRepository, CancellationToken cancellationToken)
     {
         var batchIndex = 0;
         foreach (var batch in users.Chunk(100))
@@ -93,7 +98,40 @@ public class SteamPresenceWorker(
                     continue;
                 }
 
-                //TODO: Discord Presence
+                await ProcessUserAsync(user, steamPlayer, userRepository, cancellationToken);
+            }
+        }
+    }
+
+    async Task ProcessUserAsync(User user, SteamPlayer player, IUserRepository userRepository, CancellationToken cancellationToken)
+    {
+        var lastGameId = user.LastGameId;
+        var currentGameId = player.GameID;
+
+        logger.LogInformation($"{lastGameId ?? "UNKWN"} | {currentGameId ?? "UNKNW"}");
+        if (string.Equals(lastGameId, currentGameId))
+            return;
+
+        await userRepository.UpdatePresenceAsync(user.Id, currentGameId, player.GameExtraInfo, DateTime.UtcNow, cancellationToken);
+        await userRepository.SaveChangesAsync(cancellationToken);
+
+        foreach (var guild in user.UserGuilds)
+        {
+            if (string.IsNullOrEmpty(lastGameId))
+            {
+                logger.LogInformation($"User {user.SteamId} started game {player.GameID}");
+                var notification = new UserStartedGameEvent(user, guild.GuildConfig, DateTime.UtcNow);
+                await mediator.Publish(notification, cancellationToken);
+            }
+            else if (string.IsNullOrEmpty(player.GameID))
+            {
+                logger.LogInformation($"User {user.SteamId} stooped game {player.GameID}");
+                //Stopped
+            }
+            else
+            {
+                logger.LogInformation($"User {user.SteamId} changed game {user.LastGameId} to {player.GameID}");
+                //Changed
             }
         }
     }

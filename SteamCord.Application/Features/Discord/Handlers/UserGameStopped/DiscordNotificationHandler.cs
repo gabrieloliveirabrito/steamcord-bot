@@ -3,12 +3,12 @@ using Microsoft.Extensions.Logging;
 using SteamCord.Application.Features.Discord.Events;
 using SteamCord.Application.Interfaces.Services;
 
-namespace SteamCord.Application.Features.Discord.Handlers.UserGameStarted;
+namespace SteamCord.Application.Features.Discord.Handlers.UserGameStopped;
 
 public class DiscordNotificationHandler(ILogger<DiscordNotificationHandler> logger, ISteamService steamService, IDiscordService discordService) 
-: INotificationHandler<UserStartedGameEvent>
+: INotificationHandler<UserStoppedGameEvent>
 {
-    public async Task Handle(UserStartedGameEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(UserStoppedGameEvent notification, CancellationToken cancellationToken)
     {
         var appId = notification.AppId;
         var apps = await steamService.GetAppsData([appId], cancellationToken);
@@ -26,6 +26,6 @@ public class DiscordNotificationHandler(ILogger<DiscordNotificationHandler> logg
             return;
         }
         
-        await discordService.SendGameStarted(notification.User, notification.GuildConfig, appDetail.Data, notification.OcurredAt, cancellationToken);
+        await discordService.SendGameStopped(notification.User, notification.GuildConfig, appDetail.Data, notification.OcurredAt, cancellationToken);
     }
 }

@@ -16,7 +16,6 @@ public class SteamPresenceWorker(
     ILogger<SteamPresenceWorker> logger,
     IMediator mediator,
     ISteamService steamService,
-    ISteamApisService steamApisService,
     IServiceScopeFactory serviceScopeFactory
 ) : BackgroundService
 {
@@ -43,23 +42,6 @@ public class SteamPresenceWorker(
 
     private async Task ProcessAsync(CancellationToken cancellationToken = default)
     {
-        // var users = await userRepository.GetUsersAsync(cancellationToken);
-
-        // foreach (var user in users)
-        // {
-        //     var userGuilds = await userGuildRepository.GetUserGuildsAsync(user.Id);
-
-        //     foreach (var userGuild in userGuilds)
-        //     {
-        //         var guildConfig = await guildConfigRepository.GetGuildConfigAsync(userGuild.GuildId);
-
-        //         if (guildConfig is not null)
-        //         {
-
-        //         }
-        //     }
-        // }
-
         using var scope = serviceScopeFactory.CreateScope();
         var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
 
@@ -93,6 +75,11 @@ public class SteamPresenceWorker(
             var map = players.ToDictionary(x => x.Id);
             foreach (var user in batch)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 if (!map.TryGetValue(user.SteamId, out var steamPlayer))
                 {
                     continue;
@@ -117,21 +104,31 @@ public class SteamPresenceWorker(
 
         foreach (var guild in user.UserGuilds)
         {
-            if (string.IsNullOrEmpty(lastGameId))
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+
+            if (string.IsNullOrEmpty(lastGameId) && !string.IsNullOrEmpty(currentGameId))
             {
                 logger.LogInformation($"User {user.SteamId} started game {player.GameID}");
-                var notification = new UserStartedGameEvent(user, guild.GuildConfig, DateTime.UtcNow);
+                var notification = new UserStartedGameEvent(currentGameId, user, guild.GuildConfig, DateTime.UtcNow);
+
                 await mediator.Publish(notification, cancellationToken);
             }
-            else if (string.IsNullOrEmpty(player.GameID))
+            else if (string.IsNullOrEmpty(currentGameId) && !string.IsNullOrEmpty(lastGameId))
             {
-                logger.LogInformation($"User {user.SteamId} stooped game {player.GameID}");
-                //Stopped
+                logger.LogInformation($"User {user.SteamId} stopped game {player.GameID}");
+
+                var notification = new UserStoppedGameEvent(lastGameId, user, guild.GuildConfig, DateTime.UtcNow);
+                await mediator.Publish(notification, cancellationToken);
             }
-            else
+            else if(!string.IsNullOrEmpty(lastGameId) && !string.IsNullOrEmpty(currentGameId))
             {
                 logger.LogInformation($"User {user.SteamId} changed game {user.LastGameId} to {player.GameID}");
-                //Changed
+
+                var notification = new UserChangedGameEvent(lastGameId, currentGameId, user, guild.GuildConfig, DateTime.UtcNow);
+                await mediator.Publish(notification, cancellationToken);
             }
         }
     }

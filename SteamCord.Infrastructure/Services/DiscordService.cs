@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Logging;
 using NetCord;
+using NetCord.Gateway;
 using NetCord.Rest;
 using SteamCord.Application.Entities;
 using SteamCord.Application.Interfaces.Services;
+using SteamCord.Application.Steam.Models.Apps;
 using SteamCord.Application.SteamApis.Models;
 using SCUser = SteamCord.Application.Entities.User;
 
@@ -10,7 +12,7 @@ namespace SteamCord.Infrastructure.Services;
 
 public class DiscordService(ILogger<DiscordService> logger, RestClient restClient) : IDiscordService
 {
-    async Task<(NetCord.User DiscordUser, RestGuild DiscordGuild, Channel DiscordChannel)?> FetchDiscordData(SCUser user, GuildConfig guildConfig, CancellationToken cancellationToken)
+    async Task<(NetCord.User DiscordUser, RestGuild DiscordGuild)?> FetchDiscordData(SCUser user, GuildConfig guildConfig, CancellationToken cancellationToken)
     {
         
         var discordUser = await restClient.GetUserAsync(user.DiscordId, cancellationToken: cancellationToken);
@@ -27,48 +29,42 @@ public class DiscordService(ILogger<DiscordService> logger, RestClient restClien
             return null;
         }
 
-        var discordChannel = await restClient.GetChannelAsync(guildConfig.ChannelId, cancellationToken: cancellationToken);
-        if (discordChannel is null)
-        {
-            logger.LogError("Failed to find discord channel {0}", guildConfig.ChannelId);
-            return null;
-        }
-
-        return (discordUser, discordGuild, discordChannel);
+        return (discordUser, discordGuild);
     }
 
-    public async Task SendGameStarted(SCUser user, GuildConfig guildConfig, SteamAppDetails appDetails, DateTime ocurredAt, CancellationToken cancellationToken)
+    EmbedProperties CreateGameEmbed(string description, Color embedColor, RestGuild discordGuild, SteamGameData steamGameData, DateTime ocurredAt)
     {
-        var info = await FetchDiscordData(user, guildConfig, cancellationToken);
-        if (info is null)
-        {
-            return;
-        }
-        var (discordUser, discordGuild, discordChannel) = info.Value;
 
-        var publisher = appDetails.Publishers.FirstOrDefault();
-        var releaseDate = (appDetails.ReleaseDate?.ComingSoon is true ? "Comming Soon" : appDetails.ReleaseDate?.Date) ?? "Unknown";
+        var publisher = steamGameData.Developers.FirstOrDefault();
+        var releaseDate = (steamGameData.ReleaseDate?.ComingSoon is true ? "Comming Soon" : steamGameData.ReleaseDate?.Date) ?? "Unknown";
 
-        var message = new MessageProperties { };
-        message.AddEmbeds(new EmbedProperties
+        var platforms = new List<string>();
+        if (steamGameData.Platforms.Windows)
+            platforms.Add("Windows");
+        if (steamGameData.Platforms.Mac)
+            platforms.Add("Mac");
+        if (steamGameData.Platforms.Linux)
+            platforms.Add("Linux");
+
+        return new EmbedProperties
         {
-            Title = $"O jogador {discordUser.Username} iniciou o jogo **{appDetails.Name}**",
-            Description = appDetails.ShortDescription,
-            Color = new Color(0x00FF00),
-            Image = appDetails.HeaderImage,
-            Url = $"https://store.steampowered.com/app/{appDetails.Id}",
-            Timestamp = DateTimeOffset.UtcNow,
+            Title = description,
+            Description = steamGameData.ShortDescription,
+            Color = embedColor,
+            Image = steamGameData.HeaderImage,
+            Url = $"https://store.steampowered.com/app/{steamGameData.SteamAppId}",
+            Timestamp = ocurredAt,
             Author = new EmbedAuthorProperties
             {
                 Name = publisher,
-                Url = appDetails.Website
+                Url = steamGameData.Website
             },
             Fields = [
-                new EmbedFieldProperties { Inline = true, Name = "Genres", Value = string.Join(", ", appDetails.Genres.Select(x => x.Description)) },
-                new EmbedFieldProperties { Inline = true, Name = "Free", Value = appDetails.IsFree ? "Yes" : "No" },
-                new EmbedFieldProperties { Inline = true, Name = "Success", Value = appDetails.IsSuccess ? "Yes" : "No" },
-                new EmbedFieldProperties { Inline = true, Name = "Recommendations", Value = (appDetails.Recommendations?.Total ?? 0).ToString() },
-                new EmbedFieldProperties { Inline = true, Name = "Price", Value = appDetails.PriceOverview?.FinalFormatted ?? "Unknown" },
+                new EmbedFieldProperties { Inline = true, Name = "Platforms", Value = string.Join(", ", platforms) },
+                new EmbedFieldProperties { Inline = true, Name = "Genres", Value = string.Join(", ", steamGameData.Genres.Select(x => x.Description)) },
+                new EmbedFieldProperties { Inline = true, Name = "Categories", Value = string.Join(",", steamGameData.Categories.Select(x => x.Description)) },
+                new EmbedFieldProperties { Inline = true, Name = "Free", Value = steamGameData.IsFree ? "Yes" : "No" },
+                new EmbedFieldProperties { Inline = true, Name = "Recommendations", Value = (steamGameData.Recommendations?.Total ?? 0).ToString() },
                 new EmbedFieldProperties { Inline = true, Name = "Released At", Value = releaseDate }
             ],
             Footer = new EmbedFooterProperties
@@ -76,9 +72,52 @@ public class DiscordService(ILogger<DiscordService> logger, RestClient restClien
                 Text = $"Enviado em {discordGuild.Name}",
                 IconUrl = discordGuild.GetIconUrl()?.ToString()
             }
-        });
+        };
+    }
 
-        await restClient.SendMessageAsync(discordChannel.Id, message, cancellationToken: cancellationToken);
+    public async Task SendGameStarted(SCUser user, GuildConfig guildConfig, SteamGameData steamGameData, DateTime ocurredAt, CancellationToken cancellationToken)
+    {
+        var info = await FetchDiscordData(user, guildConfig, cancellationToken);
+        if (info is null)
+        {
+            return;
+        }
+        var (discordUser, discordGuild) = info.Value;
+
+        var message = new MessageProperties { };
+        message.AddEmbeds(CreateGameEmbed($"O jogador {discordUser.Username} iniciou o jogo **{steamGameData.Name}**", new Color(0x00FF00), discordGuild, steamGameData, ocurredAt));
+
+        await restClient.SendMessageAsync(guildConfig.ChannelId, message, cancellationToken: cancellationToken);
+    }
+
+    public async Task SendGameStopped(SCUser user, GuildConfig guildConfig, SteamGameData steamGameData, DateTime ocurredAt, CancellationToken cancellationToken)
+    {
+        var info = await FetchDiscordData(user, guildConfig, cancellationToken);
+        if (info is null)
+        {
+            return;
+        }
+        var (discordUser, discordGuild) = info.Value;
+
+        var message = new MessageProperties { };
+        message.AddEmbeds(CreateGameEmbed($"O jogador {discordUser.Username} encerrou o jogo **{steamGameData.Name}**", new Color(0xFF0000), discordGuild, steamGameData, ocurredAt));
+
+        await restClient.SendMessageAsync(guildConfig.ChannelId, message, cancellationToken: cancellationToken);
+    }
+
+    public async Task SendGameChanged(SCUser user, GuildConfig guildConfig, SteamGameData fromGameData, SteamGameData toGameData, DateTime ocurredAt, CancellationToken cancellationToken)
+    {
+        var info = await FetchDiscordData(user, guildConfig, cancellationToken);
+        if (info is null)
+        {
+            return;
+        }
+        var (discordUser, discordGuild) = info.Value;
+
+        var message = new MessageProperties { };
+        message.AddEmbeds(CreateGameEmbed($"O jogador {discordUser.Username} trocou o jogo de **{fromGameData.Name}** para **{toGameData.Name}**", new Color(0x0000FF), discordGuild, toGameData, ocurredAt));
+
+        await restClient.SendMessageAsync(guildConfig.ChannelId, message, cancellationToken: cancellationToken);
     }
 
     public Task SendHelloWorld(ulong channelId) => restClient.SendMessageAsync(channelId, "Hello World");

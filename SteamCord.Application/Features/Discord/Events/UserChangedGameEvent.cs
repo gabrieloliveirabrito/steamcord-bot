@@ -1,14 +1,12 @@
 using MediatR;
+using SteamCord.Application.Entities;
 
 namespace SteamCord.Application.Features.Discord.Events;
 
 public record UserChangedGameEvent(
-    long UserID,
-    ulong DiscordID,
-    string SteamID,
-    string OldGameID,
-    string OldGameName,
-    string NewGameID,
-    string NewGameName,
+    string FromAppId,
+    string ToAppId,
+    User User,
+    GuildConfig GuildConfig,
     DateTime OcurredAt
 ) : INotification;

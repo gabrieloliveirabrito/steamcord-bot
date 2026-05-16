@@ -26,9 +26,14 @@ public class UserRepository(AppDbContext appDbContext) : IUserRepository
         return appDbContext.Users.FirstOrDefaultAsync(x => x.DiscordId == discordId, ct);
     }
 
+    public Task<List<User>> GetTrackedUsersAsync(CancellationToken ct = default)
+    {
+        return appDbContext.Users.Include(x => x.UserGuilds).ThenInclude(x => x.GuildConfig).ToListAsync(ct);
+    }
+
     public Task SaveChangesAsync(CancellationToken ct = default) => appDbContext.SaveChangesAsync(ct);
 
-    public async Task UpdatePresenceAsync(long userId, string? gameId, string? gameName, DateTime lastSeenAt, CancellationToken ct = default)
+    public async Task UpdatePresenceAsync(int userId, string? gameId, string? gameName, DateTime lastSeenAt, CancellationToken ct = default)
     {
         var user = await appDbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
         if (user is null)

@@ -30,14 +30,16 @@ public class SteamApisService(ILogger<SteamApisService> logger, HttpClient http,
             builder?.Invoke(request);
 
             var response = await http.SendAsync(request, ct);
+            var json = await response.Content.ReadAsStringAsync(ct);
+            
             if (!response.IsSuccessStatusCode)
             {
+                logger.LogError(json);
                 await redis.SetAsync(existsKey, $"Request {url} returned {response.StatusCode}", TimeSpan.FromMinutes(10));
                 logger.LogError("Failed to send the request to {url}", url);
                 return default;
             }
 
-            var json = await response.Content.ReadAsStringAsync(ct);
             var apiResponse = JsonConvert.DeserializeObject<BaseResponse<T>>(json);
 
             if (apiResponse?.Success is true)

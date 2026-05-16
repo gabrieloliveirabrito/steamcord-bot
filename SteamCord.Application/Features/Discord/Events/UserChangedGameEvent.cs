@@ -9,5 +9,6 @@ public record UserChangedGameEvent(
     string OldGameID,
     string OldGameName,
     string NewGameID,
-    string NewGameName
+    string NewGameName,
+    DateTime OcurredAt
 ) : INotification;

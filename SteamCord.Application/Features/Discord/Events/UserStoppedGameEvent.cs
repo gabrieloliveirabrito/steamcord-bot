@@ -7,5 +7,6 @@ public record UserStoppedGameEvent(
     ulong DiscordID,
     string SteamID,
     string LastGameID,
-    string LastGameName
+    string LastGameName,
+    DateTime OcurredAt
 ) : INotification;

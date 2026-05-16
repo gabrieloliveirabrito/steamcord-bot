@@ -1,11 +1,11 @@
 using MediatR;
+using SteamCord.Application.Entities;
+using SteamCord.Application.SteamApis.Models;
 
 namespace SteamCord.Application.Features.Discord.Events;
 
 public record UserStartedGameEvent(
-    long UserID,
-    ulong DiscordID,
-    string SteamID,
-    string GameID,
-    string GameName
+    User User,
+    GuildConfig GuildConfig,
+    DateTime OcurredAt
 ) : INotification;

@@ -21,4 +21,6 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
+RUN apt-get update && apt-get install -y libgssapi-krb5-2
+
 ENTRYPOINT ["dotnet", "SteamCord.Bot.dll"]

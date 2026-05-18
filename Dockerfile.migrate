@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+
+WORKDIR /src
+
+COPY SteamCord.slnx .
+COPY SteamCord.Bot/ SteamCord.Bot/
+COPY SteamCord.Application/ SteamCord.Application/
+COPY SteamCord.Infrastructure/ SteamCord.Infrastructure/
+
+RUN dotnet tool install --global dotnet-ef
+
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+RUN dotnet restore SteamCord.Bot/SteamCord.Bot.csproj
+
+ENTRYPOINT ["dotnet", "ef"]
